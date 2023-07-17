@@ -28,7 +28,7 @@ pip install -r requirements.txt
 
 ### Model Training
 
-1. Open the code file `clothing_classification.py` in your preferred Python IDE or editor.
+1. Open the code file `test` in your preferred Python IDE or editor.
 2. Run the code to train the model. The trained model will be saved in the `models` folder.
 
 ### Model Evaluation
