@@ -1,76 +1,83 @@
-# intelunnati__Samarth
+# Conquering Fashion-MNIST with CNNs
 
-# Clothing Image Classification using CNN
+Clothing image classification with a small convolutional neural network (TensorFlow/Keras) on the
+[Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset. Built as a project for the
+Intel Unnati programme (MIT Manipal).
 
-This repository contains the code and documentation for a project on clothing image classification using Convolutional Neural Networks (CNNs). The project aims to develop a model that accurately classifies clothing images into their respective categories.
+## Dataset
 
-## Directory Structure
+**Fashion-MNIST** (Zalando Research): 70,000 grayscale 28×28 images of clothing in 10 classes
+(T-shirt/top, Trouser, Pullover, Dress, Coat, Sandal, Shirt, Sneaker, Bag, Ankle boot). There are 60,000
+training images and 10,000 test images.
 
-The repository is organized into the following folders:
+- The code downloads the dataset automatically with `tf.keras.datasets.fashion_mnist.load_data()`, so you don't need to download anything by hand.
+- `data/fashion-mnist_test.csv` (22 MB, 10,000 rows of `label, pixel1 … pixel784`) is the CSV copy of the test split from the [Kaggle Fashion-MNIST dataset](https://www.kaggle.com/datasets/zalando-research/fashionmnist). The code does not read it. It is kept for reference.
+- `data/train-data` contains a Google Drive link to the matching training CSV, which is too large for the repo.
 
-models: Contains trained model files.
-data: Contains the dataset used for training and testing. The dataset is already included in this folder.
-code: Contains the code files related to the project. It includes scripts, notebooks, and other code components.
-docs: Contains documentation files related to the project.
-report.md: Conclusion of tasks performed, mentioning tests carried out, and the final accuracy achieved.
-approach.md: Contains the steps taken to reach the final outcome, along with the outcomes and reasoning for each approach taken.
-demo_videos: Contains video demonstrations of the final working project. If there are multiple approaches, there will be separate videos for each.
+## Approach
 
-## How to Run the Code
+1. Reshape the images to `28×28×1` and scale pixel values to `[0, 1]`.
+2. CNN: `Conv2D(64, 3×3, ReLU) → MaxPool(2) → Conv2D(64, 3×3, ReLU) → MaxPool(2) → Flatten → Dense(128, ReLU) → Dense(10, softmax)`. The network has 243,786 parameters.
+3. Train with Adam and sparse categorical cross-entropy for 5 epochs (batch size 32). The test split is passed as `validation_data`, so it is used for monitoring only. No early stopping or tuning is done.
+4. Evaluate with test accuracy, a confusion matrix, a per-class classification report, one-vs-rest ROC curves with AUC, and macro precision/recall/F1.
 
-To run the code, please follow the steps below:
+## Results
 
-### Set up the Environment
+Results from the notebook `model/MNIST.ipynb` (re-executed for this README with TensorFlow 2.21 and `set_random_seed(42)`, 5 epochs, CPU):
 
-Ensure that Python 3.7 or higher is installed on your system. Install the necessary libraries and dependencies by running the following command:
+| Metric (10,000 test images) | Value |
+|---|---|
+| Test accuracy | **90.49%** |
+| Macro precision / recall / F1 | 0.905 / 0.905 / 0.904 |
+| Best class (F1) | Trouser, Sandal, Bag: 0.98 |
+| Hardest class (F1) | Shirt: 0.72 |
 
+The original Colab run (in this repo's git history) reached **90.74%** test accuracy.
+
+> The Word documents in `doc/` state a final accuracy of 93%. No run in this repo shows that figure. The notebooks show 90.5–90.7% on the test set; 93.2% is the *training* accuracy after epoch 5.
+
+### Notebook changes
+
+- Removed the `!pip install visualkeras` cell and the no-op `tf.onednn=1` line.
+- Used `tf.keras.Input` instead of `input_shape=` (deprecated in Keras 3).
+- Added a small shim so `visualkeras` can draw the model under Keras 3.
+- Added class names to the plots and report.
+- Replaced the precision/recall cell. It fed integer class labels to the *binary* `tf.keras.metrics.Precision/Recall` and reported misleading ~0.98 values. It now reports sklearn macro averages.
+- Removed the "IoU" cells. IoU is a segmentation metric. Here it was computed between a one-hot label and a probability vector and always came out at 0.10, which says nothing about the model.
+
+## How to run
+
+```bash
+python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-### Model Training
-
-1. Open the code file `MNIST.py` in your preferred Python IDE or editor.
-2. Run the code to train the model. The trained model will be saved in the `models` folder.
-
-### Model Evaluation
-
-1. After training, the code will automatically evaluate the model on the test set and display the test accuracy.
-2. Classification reports, confusion matrices, and ROC curves will be generated and saved in the `docs` folder.
-
-### Visualize Model Architecture
-
-To visualize the model architecture, make sure you have the `visualkeras` package installed. If not, install it using:
-
-```
-pip install visualkeras
+cd "samarth_MIT_Manipal_ Conquering Fashion MNIST with CNNs using Computer Vision"
+python code/MNIST.py          # trains, prints metrics, saves plots + model to code/outputs/
+# or
+jupyter notebook model/MNIST.ipynb
 ```
 
-Then, run the following code:
+Training takes about 1.5–2.5 minutes on a laptop CPU. The script writes `fashion_mnist_cnn.keras`, `model_diagram.png`, `confusion_matrix.png`, `roc_curves.png` and `accuracy.png` to `code/outputs/`.
 
-```python
-import visualkeras
-from tensorflow.keras.models import load_model
+## Repository structure
 
-model = load_model('models/your_model_file.h5')  # Replace 'your_model_file.h5' with the actual model file name
-
-# Visualize the model
-visualkeras.layered_view(model)
+```
+samarth_MIT_Manipal_ Conquering Fashion MNIST with CNNs using Computer Vision/
+├── code/MNIST.py               # script version: train, evaluate, save plots and model
+├── model/MNIST.ipynb           # notebook with outputs (training log, plots, report)
+├── data/
+│   ├── fashion-mnist_test.csv  # test split as CSV (reference only)
+│   └── train-data              # Google Drive link to the training CSV
+├── doc/
+│   ├── REPORT.docx             # project report (conclusion, tests, accuracy)
+│   └── approach.docx           # approach and reasoning
+└── demo-vid/DEMO VIDEO         # Google Drive link to the demo video
+requirements.txt
 ```
 
-### Optional: IoU Calculation
+The demo video is hosted on Google Drive:
+<https://drive.google.com/file/d/14TK81LNRQeXTgmDmJ5oFDYaemkhbened/view?usp=sharing>
 
-If you have binary segmentation tasks, you can calculate the Intersection over Union (IoU) by running the provided `calculate_iou` function on the test predictions. The average IoU across all test images will be displayed.
+## Tech stack
 
-### Demo Videos
-
-Check the demo_videos folder to find video demonstrations of the final working project. If there are multiple approaches, there will be separate videos for each.
-
-Feel free to explore the code, documentation, and model files to understand the project in detail.
-
-For any questions or issues, please reach out to the repository owner.
-Check the `demo_videos` folder to find video demonstrations of the final working project. If there are multiple approaches, there will be separate videos for each.
-
-Feel free to explore the code, documentation, and model files to understand the project in detail.
-
-For any questions or issues, please reach out to the repository owner.
-
-Happy coding!
+Python, TensorFlow/Keras, NumPy, pandas, scikit-learn, Matplotlib, seaborn, visualkeras, Jupyter.
