@@ -1,0 +1,9 @@
+# Tested with Python 3.12.
+tensorflow>=2.16      # tested 2.21.0 (Keras 3.15)
+numpy>=1.26           # tested 2.5.4
+pandas>=2.2           # tested 3.1.0
+matplotlib>=3.8
+seaborn>=0.13
+scikit-learn>=1.4     # tested 1.9.1
+visualkeras>=0.1      # tested 0.2.0 (model diagram only)
+jupyter               # only needed for the notebook
